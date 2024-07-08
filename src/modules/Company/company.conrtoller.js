@@ -1,8 +1,8 @@
 import Company from "../../../DB/models/company.model.js";
 import User from "./../../../DB/models/user.model.js";
 import { ErrorClass } from "../../utils/error-class.utils.js";
-
-
+import Job from "../../../DB/models/job.model.js";
+import Application from "../../../DB/models/application.model.js";
 export const addCompany = async (req, res, next) => {
   const { companyName, desc, industry, address, noOfEmployees, companyEmail } =
     req.body;
@@ -108,3 +108,29 @@ export const search = async (req, res, next) => {
     res.json({ msg: result });
 
 };
+
+export const getCompanyWithJob = async (req, res, next) => {
+    const { authUser } = req;
+    const {jobId}= req.body;
+    const job = await Job.findById({_id:jobId});
+    if (!authUser._id == job.addedBy) {
+      return next(
+        new ErrorClass(
+          "you are not allowed to get those apps",
+          400,
+          "you are not allowed to get those apps"
+        )
+      );
+    }
+    
+    const allApp = await Appl.aggregate([
+      {
+        $lookup: {
+          from: "companies",
+          localField: "addedBy",
+          foreignField: "companyHR",
+        },
+      },
+    ]);
+    res.json({ allJobs });
+  };

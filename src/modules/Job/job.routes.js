@@ -5,7 +5,7 @@ import { roles, systemRoles } from "../../utils/system-roles.utils.js";
 import * as jobs from "./job.conrtoller.js";
 import { auth } from "../../middleware/authentication.middleware.js";
 import { validationMiddleware } from "../../middleware/validation.middleware.js";
-import { addJobSchema, applySchema, getJobsByCompanyNameSchema, getJobsSchema } from "./job.schema.js";
+import { addJobSchema, applySchema, deleteJobSchema, filterSchema, getJobsByCompanyNameSchema, getJobsSchema, updateJobSchema } from "./job.schema.js";
 
 const router = Router();
 router.post(
@@ -22,20 +22,20 @@ router.post(
     errorHandler(validationMiddleware(applySchema)),
     errorHandler(jobs.applyToJob)
   );
-// router.put(
-//   "/updateCompany/:_id",
-//   errorHandler(auth()),
-//   errorHandler(authorizationMiddleware(systemRoles.COMPANY_HR)),
-//   errorHandler(validationMiddleware(updateCompanySchema)),
-//   errorHandler(companies.updateCompany)
-// );
-// router.delete(
-//   "/deleteCompany/:_id",
-//   errorHandler(auth()),
-//   errorHandler(authorizationMiddleware(systemRoles.COMPANY_HR)),
-//   errorHandler(validationMiddleware(deleteCompanySchema)),
-//   errorHandler(companies.deleteCompany)
-// );
+router.put(
+  "/update/:_id",
+  errorHandler(auth()),
+  errorHandler(authorizationMiddleware(systemRoles.COMPANY_HR)),
+  errorHandler(validationMiddleware(updateJobSchema)),
+  errorHandler(jobs.updateJob)
+);
+router.delete(
+  "/delete/:_id",
+  errorHandler(auth()),
+  errorHandler(authorizationMiddleware(systemRoles.COMPANY_HR)),
+  errorHandler(validationMiddleware(deleteJobSchema)),
+  errorHandler(jobs.deleteJob)
+);
 router.get(
   "/getJobs",
   errorHandler(auth()),
@@ -51,9 +51,10 @@ router.get(
   errorHandler(jobs.getJobsByCompanyName)
 );
 router.get(
-    "/getJobsByCompanyName",
+    "/filter",
     errorHandler(auth()),
     errorHandler(authorizationMiddleware(roles.USER_COMPANY_HR)),
-    errorHandler(jobs.getJobsByCompanyName)
+    errorHandler(validationMiddleware(filterSchema)),
+    errorHandler(jobs.filter)
   );
 export default router;

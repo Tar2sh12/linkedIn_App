@@ -82,8 +82,10 @@ export const deleteJob = async (req, res, next) => {
       )
     );
   }
+  const deletedApp = await Application.deleteMany({jobId:_id});
+  
   const deletedJob = await Job.findByIdAndDelete(_id);
-  res.status(200).json({ msg: "deleted", deletedJob });
+  res.status(200).json({ msg: "deleted", deletedJob ,deletedApp });
 };
 
 export const applyToJob = async (req, res, next) => {
@@ -134,18 +136,31 @@ export const getJobsByCompanyName = async (req, res, next) => {
 export const filter = async (req, res, next) => {
   const { authUser } = req;
   const {
-    technicalSkills=[],
-    seniorityLevel="",
-    workingTime="",
-    jobLocation="",
-    jobTitle="",
-  } = req.body;
-  const allJobs = await Job.find({
-    technicalSkills: { $in: technicalSkills },
+    technicalSkills=[] ,
     seniorityLevel,
     workingTime,
     jobLocation,
     jobTitle,
-  });
+  } = req.body;
+  const filters = {};
+
+  // Check if each filter exists in req.query and add it to filters object if present
+  if (workingTime) {
+    filters.workingTime = workingTime;
+  }
+  if (jobLocation) {
+    filters.jobLocation = jobLocation;
+  }
+  if (seniorityLevel) {
+    filters.seniorityLevel = seniorityLevel;
+  }
+  if (jobTitle) {
+    filters.jobTitle = jobTitle;
+  }
+  if (technicalSkills.length) {
+    filters.technicalSkills = technicalSkills;
+  }
+  console.log(filters);
+  const allJobs = await Job.find(filters);
   res.json({ allJobs });
 };

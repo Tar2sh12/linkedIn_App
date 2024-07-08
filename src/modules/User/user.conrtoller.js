@@ -1,8 +1,11 @@
+import Company from "../../../DB/models/company.model.js";
 import User from "./../../../DB/models/user.model.js";
+import Job from "../../../DB/models/job.model.js";
+import Application from "../../../DB/models/application.model.js";
 import { hashSync, compareSync } from "bcrypt";
 import { ErrorClass } from "../../utils/error-class.utils.js";
 import jwt from "jsonwebtoken";
-import otpGenerator from 'otp-generator'
+import otpGenerator from "otp-generator";
 import { sendEmailService } from "../../services/send-email.service.js";
 export const signUp = async (req, res, next) => {
   const {
@@ -24,7 +27,10 @@ export const signUp = async (req, res, next) => {
       new ErrorClass("Email already exists", 400, "Email already exists")
     );
   }
-  const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
+  const otp = otpGenerator.generate(6, {
+    upperCaseAlphabets: false,
+    specialChars: false,
+  });
   const hashedPassword = hashSync(password, +process.env.SALT_ROUNDS);
   const userInstance = new User({
     firstName,
@@ -36,7 +42,7 @@ export const signUp = async (req, res, next) => {
     DOB,
     phone,
     role,
-    otp
+    otp,
   });
   //generate token instead of sending _id
   const confirmationToken = jwt.sign(
@@ -191,9 +197,25 @@ export const updateUser = async (req, res, next) => {
 };
 export const deleteUser = async (req, res, next) => {
   const { authUser } = req;
-  console.log(authUser);
+  const job = await Job.find({ addedBy: authUser._id }).select('_id');
+  console.log(Object.values(job));
+  let jobs =[]
+  job.forEach((e)=>{
+    jobs.push(e._id)
+  })
+  console.log(jobs);
+  const deleteCompany = await Company.deleteMany({ companyHR: authUser._id });
+  const deleteApp = await Application.deleteMany({
+    $or: [
+      { userId: authUser._id },
+      { jobId: { $in: jobs } }
+    ]
+  });
+  const deleteJob = await Job.deleteMany({ addedBy: authUser._id })
   const dUser = await User.findByIdAndDelete(authUser._id);
-  res.status(200).json({ msg: "user deleted ", dUser });
+
+  res.status(200).json({ msg: "user deleted ",deleteCompany,deleteJob,dUser, deleteApp });
+
 };
 
 export const getInfo = async (req, res, next) => {
@@ -248,19 +270,6 @@ export const getAllRecovery = async (req, res, next) => {
   res.status(200).json({ user });
 };
 
-/**
- *  1st =>generate otp in signUp
- * forget  1st api
- * => email  ******
- * change pass 2nd
- * otp , pass
- *
- *
- * otp
- * generate new otp
- *
- */
-
 export const forgetPassword = async (req, res, next) => {
   const { email } = req.body;
   const isUserExists = await User.findOne({
@@ -283,25 +292,27 @@ export const forgetPassword = async (req, res, next) => {
       .status(500)
       .json({ msg: "verification email sending is failed " });
   }
-  res.json({msg:"check your email"})
+  res.json({ msg: "check your email" });
 };
 
-
 export const changePassword = async (req, res, next) => {
-  const {email,password,otp}= req.body;
-  const user = await User.findOne({email});
+  const { email, password, otp } = req.body;
+  const user = await User.findOne({ email });
   if (!user) {
     return next(
       new ErrorClass("email doesn't exist", 400, "email doesn't exist")
     );
   }
-  if(!user?.otp==otp){
-    return new ErrorClass("otp is wrong")
+  if (!user?.otp == otp) {
+    return new ErrorClass("otp is wrong");
   }
-  const newOTP = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
+  const newOTP = otpGenerator.generate(6, {
+    upperCaseAlphabets: false,
+    specialChars: false,
+  });
   const hashedPassword = hashSync(password, +process.env.SALT_ROUNDS);
-  user.password= hashedPassword;
-  user.otp=newOTP;
-  const savedUser= await user.save();
-  res.json({msg:"password changed",savedUser});
-}
+  user.password = hashedPassword;
+  user.otp = newOTP;
+  const savedUser = await user.save();
+  res.json({ msg: "password changed", savedUser });
+};

@@ -16,6 +16,33 @@ export const addJobSchema= {
         ...generalRules.headers,
     }),
 }
+export const updateJobSchema= {
+    body: Joi.object({
+        jobTitle:Joi.string().optional(),
+        jobLocation:Joi.string().optional().valid("onsite", "remotely", "hybrid"),
+        workingTime:Joi.string().optional().valid("partTime", "fullTime"),
+        seniorityLevel:Joi.string().optional().valid("junior", "midLevel", "senior", "teamLead", "CTO"),
+        jobDescription:Joi.string().optional(),
+        technicalSkills:Joi.array().items(Joi.string()).optional(),
+        softSkills:Joi.array().items(Joi.string()).optional(),
+    }),
+    headers: Joi.object({
+        token: Joi.string().required(),
+        ...generalRules.headers,
+    }),
+    params:Joi.object({
+        _id:generalRules._id.required()
+    }),
+}
+export const deleteJobSchema= {
+    headers: Joi.object({
+        token: Joi.string().required(),
+        ...generalRules.headers,
+    }),
+    params:Joi.object({
+        _id:generalRules._id.required()
+    }),
+}
 export const applySchema= {
     body: Joi.object({
         userTechSkills:Joi.array().items(Joi.string()).optional(),
@@ -43,6 +70,19 @@ export const getJobsByCompanyNameSchema= {
     })
     ,
 
+    headers: Joi.object({
+        token: Joi.string().required(),
+        ...generalRules.headers,
+    }),
+}
+export const filterSchema= {
+    body: Joi.object({
+        jobTitle:Joi.string().optional(),
+        jobLocation:Joi.string().optional().valid("onsite", "remotely", "hybrid"),
+        workingTime:Joi.string().optional().valid("partTime", "fullTime"),
+        seniorityLevel:Joi.string().optional().valid("junior", "midLevel", "senior", "teamLead", "CTO"),
+        technicalSkills:Joi.array().items(Joi.string()).optional(),
+    }),
     headers: Joi.object({
         token: Joi.string().required(),
         ...generalRules.headers,
