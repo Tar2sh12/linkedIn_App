@@ -198,12 +198,10 @@ export const updateUser = async (req, res, next) => {
 export const deleteUser = async (req, res, next) => {
   const { authUser } = req;
   const job = await Job.find({ addedBy: authUser._id }).select('_id');
-  console.log(Object.values(job));
   let jobs =[]
   job.forEach((e)=>{
     jobs.push(e._id)
   })
-  console.log(jobs);
   const deleteCompany = await Company.deleteMany({ companyHR: authUser._id });
   const deleteApp = await Application.deleteMany({
     $or: [
@@ -220,7 +218,6 @@ export const deleteUser = async (req, res, next) => {
 
 export const getInfo = async (req, res, next) => {
   const { authUser } = req;
-  console.log(authUser);
   const user = await User.findById(authUser._id).select("-password -_id");
   res.status(200).json({ user });
 };

@@ -160,7 +160,6 @@ export const filter = async (req, res, next) => {
   if (technicalSkills.length) {
     filters.technicalSkills = technicalSkills;
   }
-  console.log(filters);
   const allJobs = await Job.find(filters);
   res.json({ allJobs });
 };
