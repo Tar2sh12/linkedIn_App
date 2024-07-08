@@ -82,3 +82,8 @@ export const recoveryEmailSchema = {
   }),
 };
 
+export const verifySchema = {
+  params: Joi.object({
+    confirmationToken: Joi.string().required(),
+  }),
+};

@@ -12,6 +12,7 @@ import {
   SignUpSchema,
   updatePassSchema,
   updateSchema,
+  verifySchema,
 } from "./user.schema.js";
 import { auth } from "../../middleware/authentication.middleware.js";
 const router = Router();
@@ -60,8 +61,14 @@ router.patch(
   errorHandler(validationMiddleware(updatePassSchema)),
   errorHandler(users.updatePass)
 );
-router.get("/recoveryEmail",
-    errorHandler(validationMiddleware(recoveryEmailSchema)),
-    errorHandler(users.getAllRecovery)
-)
+router.get(
+  "/recoveryEmail",
+  errorHandler(validationMiddleware(recoveryEmailSchema)),
+  errorHandler(users.getAllRecovery)
+);
+router.get(
+  "/confirmation/:confirmationToken",
+  errorHandler(validationMiddleware(verifySchema)),
+  errorHandler(users.verifyEmail)
+);
 export default router;

@@ -4,16 +4,32 @@ const { Schema, model } = mongoose;
 
 const userSchema = new Schema(
   {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    userName: { type: String, required: true },
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+    },
+    userName: {
+      type: String,
+      required: true,
+    },
     email: {
       type: String,
       unique: true,
       required: true,
     },
-    password: { type: String, required: true },
-    recoveryEmail: { type: String, required: true },
+    password: {
+      type: String,
+      required: true,
+    },
+    recoveryEmail: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     DOB: {
       type: Date,
       required: true,
@@ -29,12 +45,19 @@ const userSchema = new Schema(
       enum: Object.values(systemRoles), // [User, Company_HR]
       required: true,
     },
-    status: { // (online : true , offline:false )
+    status: {
+      // (online : true , offline:false )
       type: Boolean,
       required: true,
       default: false,
     },
-
+    isConfirmed: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      type: Number,
+    },
   },
   { timestamps: true }
 );
