@@ -3,7 +3,9 @@ import { errorHandler } from "../../middleware/error-handling.middleware.js";
 import * as users from "./user.conrtoller.js";
 import { validationMiddleware } from "../../middleware/validation.middleware.js";
 import {
+  changePassword,
   deleteSchema,
+  forgetPassword,
   getByIdSchema,
   getInfoSchema,
   logInSchema,
@@ -70,5 +72,15 @@ router.get(
   "/confirmation/:confirmationToken",
   errorHandler(validationMiddleware(verifySchema)),
   errorHandler(users.verifyEmail)
+);
+router.post(
+  "/forgetPass",
+  errorHandler(validationMiddleware(forgetPassword)),
+  errorHandler(users.forgetPassword)
+);
+router.patch(
+  "/changePass",
+  errorHandler(validationMiddleware(changePassword)),
+  errorHandler(users.changePassword)
 );
 export default router;

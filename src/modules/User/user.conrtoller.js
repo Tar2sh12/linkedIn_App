@@ -2,6 +2,7 @@ import User from "./../../../DB/models/user.model.js";
 import { hashSync, compareSync } from "bcrypt";
 import { ErrorClass } from "../../utils/error-class.utils.js";
 import jwt from "jsonwebtoken";
+import otpGenerator from 'otp-generator'
 import { sendEmailService } from "../../services/send-email.service.js";
 export const signUp = async (req, res, next) => {
   const {
@@ -23,6 +24,7 @@ export const signUp = async (req, res, next) => {
       new ErrorClass("Email already exists", 400, "Email already exists")
     );
   }
+  const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
   const hashedPassword = hashSync(password, +process.env.SALT_ROUNDS);
   const userInstance = new User({
     firstName,
@@ -34,6 +36,7 @@ export const signUp = async (req, res, next) => {
     DOB,
     phone,
     role,
+    otp
   });
   //generate token instead of sending _id
   const confirmationToken = jwt.sign(
@@ -88,7 +91,10 @@ export const login = async (req, res, next) => {
   const { email, password } = req.body;
   // find user
   const user = await User.findOne({
-    $and:[{$or: [{ email }, { recoveryEmail: email }]},{isConfirmed:true}]
+    $and: [
+      { $or: [{ email }, { recoveryEmail: email }] },
+      { isConfirmed: true },
+    ],
   });
   if (!user) {
     return next(
@@ -137,11 +143,15 @@ export const updateUser = async (req, res, next) => {
       )
     );
   }
-  
+
   if (email) {
-    const userByEmail= await User.findByIdAndUpdate(authUser._id,{
-      isConfirmed:false
-    },{new:true});
+    const userByEmail = await User.findByIdAndUpdate(
+      authUser._id,
+      {
+        isConfirmed: false,
+      },
+      { new: true }
+    );
     //generate token instead of sending _id
     const confirmationToken = jwt.sign(
       { user: userByEmail },
@@ -237,3 +247,61 @@ export const getAllRecovery = async (req, res, next) => {
   }
   res.status(200).json({ user });
 };
+
+/**
+ *  1st =>generate otp in signUp
+ * forget  1st api
+ * => email  ******
+ * change pass 2nd
+ * otp , pass
+ *
+ *
+ * otp
+ * generate new otp
+ *
+ */
+
+export const forgetPassword = async (req, res, next) => {
+  const { email } = req.body;
+  const isUserExists = await User.findOne({
+    $or: [{ email }, { recoveryEmail: email }],
+  });
+  if (!isUserExists) {
+    return next(
+      new ErrorClass("email doesn't exist", 400, "email doesn't exist")
+    );
+  }
+  //sending email
+  const isEmailSent = await sendEmailService({
+    to: email,
+    subject: "welcome",
+    // textMessage:"hamsolah bymsi 3alek mn gowa l back-end"
+    htmlMessage: `<h1>your otp numbers for reseting the password are : ${isUserExists.otp}</h1>`,
+  });
+  if (isEmailSent.rejected.length) {
+    return res
+      .status(500)
+      .json({ msg: "verification email sending is failed " });
+  }
+  res.json({msg:"check your email"})
+};
+
+
+export const changePassword = async (req, res, next) => {
+  const {email,password,otp}= req.body;
+  const user = await User.findOne({email});
+  if (!user) {
+    return next(
+      new ErrorClass("email doesn't exist", 400, "email doesn't exist")
+    );
+  }
+  if(!user?.otp==otp){
+    return new ErrorClass("otp is wrong")
+  }
+  const newOTP = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
+  const hashedPassword = hashSync(password, +process.env.SALT_ROUNDS);
+  user.password= hashedPassword;
+  user.otp=newOTP;
+  const savedUser= await user.save();
+  res.json({msg:"password changed",savedUser});
+}

@@ -87,3 +87,19 @@ export const verifySchema = {
     confirmationToken: Joi.string().required(),
   }),
 };
+
+export const forgetPassword = {
+  body: Joi.object({
+    email:Joi.string().email({
+      minDomainSegments: 2,
+    }).required()
+  }),
+};
+
+export const changePassword = {
+  body: Joi.object({
+    email:generalRules.email.required(),
+    password:generalRules.password.required(),
+    otp: Joi.string().required()
+  }),
+};
