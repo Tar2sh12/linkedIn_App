@@ -32,6 +32,8 @@ const companySchema= new Schema({
         type: Schema.Types.ObjectId,
         required: true,
         ref: "User",
+        unique:true
       }
+
 }, {timestamps:true})
 export default mongoose.models.Company || model("Company", companySchema);

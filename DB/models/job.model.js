@@ -40,7 +40,7 @@ const jobSchema = new Schema(
     addedBy: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: "Company",
+      ref: "User",
     },
   },
   { timestamps: true }
