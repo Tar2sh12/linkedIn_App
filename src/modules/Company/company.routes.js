@@ -5,7 +5,7 @@ import { roles, systemRoles } from "../../utils/system-roles.utils.js";
 import * as companies from "./company.conrtoller.js";
 import { auth } from "../../middleware/authentication.middleware.js";
 import { validationMiddleware } from "../../middleware/validation.middleware.js";
-import { addCompanySchema, deleteCompanySchema, getCompanySchema, searchCompanySchema, updateCompanySchema } from "./company.schema.js";
+import { addCompanySchema, deleteCompanySchema, findSchema, getCompanySchema, searchCompanySchema, updateCompanySchema } from "./company.schema.js";
 
 const router = Router();
 router.post(
@@ -43,4 +43,11 @@ router.get(
   errorHandler(validationMiddleware(searchCompanySchema)),
   errorHandler(companies.search)
 );
+router.get(
+    "/find",
+    errorHandler(auth()),
+    errorHandler(authorizationMiddleware(systemRoles.COMPANY_HR)),
+    errorHandler(validationMiddleware(findSchema)),
+    errorHandler(companies.getCompanyWithJob)
+  );
 export default router;

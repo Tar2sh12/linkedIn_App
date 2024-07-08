@@ -60,3 +60,13 @@ export const searchCompanySchema= {
         ...generalRules.headers,
     })
 }
+
+export const findSchema= {
+    body: Joi.object({
+        jobId: generalRules._id.required()
+    }),
+    headers: Joi.object({
+        token: Joi.string().required(),
+        ...generalRules.headers,
+    })
+}

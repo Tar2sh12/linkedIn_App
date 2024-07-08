@@ -123,14 +123,6 @@ export const getCompanyWithJob = async (req, res, next) => {
       );
     }
     
-    const allApp = await Appl.aggregate([
-      {
-        $lookup: {
-          from: "companies",
-          localField: "addedBy",
-          foreignField: "companyHR",
-        },
-      },
-    ]);
-    res.json({ allJobs });
+    const allApp = await Application.find({jobId:jobId}).populate([{path:'userId'}]);
+    res.json({ allApp });
   };
