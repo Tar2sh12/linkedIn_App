@@ -3,15 +3,17 @@ import User from "./../../../DB/models/user.model.js";
 import { ErrorClass } from "../../utils/error-class.utils.js";
 import Job from "../../../DB/models/job.model.js";
 import Application from "../../../DB/models/application.model.js";
+import excel from "exceljs";
+
 export const addCompany = async (req, res, next) => {
   const { companyName, desc, industry, address, noOfEmployees, companyEmail } =
     req.body;
   const { authUser } = req;
   const isCompanyNameExist = await Company.findOne({
-    $or: [{ companyName }, { companyEmail }, {companyHR:authUser._id}],
+    $or: [{ companyName }, { companyEmail }, { companyHR: authUser._id }],
   });
 
-  if (isCompanyNameExist ) {
+  if (isCompanyNameExist) {
     return next(
       new ErrorClass("company already exists", 400, "company already exists")
     );
@@ -69,8 +71,8 @@ export const updateCompany = async (req, res, next) => {
 
 export const deleteCompany = async (req, res, next) => {
   const { authUser } = req;
-  const {_id} = req.params;
-  const company = await Company.findById({_id});
+  const { _id } = req.params;
+  const company = await Company.findById({ _id });
   if (!authUser._id == company.companyHR) {
     return next(
       new ErrorClass(
@@ -86,8 +88,8 @@ export const deleteCompany = async (req, res, next) => {
 
 export const getCompany = async (req, res, next) => {
   const { authUser } = req;
-  const {_id} = req.params;
-  const company = await Company.findById({_id});
+  const { _id } = req.params;
+  const company = await Company.findById({ _id });
   if (!authUser._id == company.companyHR) {
     return next(
       new ErrorClass(
@@ -101,28 +103,78 @@ export const getCompany = async (req, res, next) => {
 };
 
 export const search = async (req, res, next) => {
-    const { search } = req.body;
-    const result = await Company.find({
-      companyName: { $regex: search, $options: "i" }, // for making it case insensitive search
-    });
-    res.json({ msg: result });
-
+  const { search } = req.body;
+  const result = await Company.find({
+    companyName: { $regex: search, $options: "i" }, // for making it case insensitive search
+  });
+  res.json({ msg: result });
 };
 
 export const getCompanyWithJob = async (req, res, next) => {
-    const { authUser } = req;
-    const {jobId}= req.body;
-    const job = await Job.findById({_id:jobId});
-    if (!authUser._id == job.addedBy) {
-      return next(
-        new ErrorClass(
-          "you are not allowed to get those apps",
-          400,
-          "you are not allowed to get those apps"
-        )
-      );
-    }
-    
-    const allApp = await Application.find({jobId:jobId}).populate([{path:'userId'}]);
-    res.json({ allApp });
-  };
+  const { authUser } = req;
+  const { jobId } = req.body;
+  const job = await Job.findById({ _id: jobId });
+  if (!authUser._id == job.addedBy) {
+    return next(
+      new ErrorClass(
+        "you are not allowed to get those apps",
+        400,
+        "you are not allowed to get those apps"
+      )
+    );
+  }
+
+  const allApp = await Application.find({ jobId: jobId }).populate([
+    { path: "userId" },
+  ]);
+  res.json({ allApp });
+};
+//
+export const excelEndpoint = async (req, res, next) => {
+  const { _id } = req.params;
+  const company = await Company.findById(_id);
+  if (!company) {
+    return next(new ErrorClass("Company does not exist", 404));
+  }
+
+  const job = await Job.findOne({ addedBy: company.companyHR });
+  if (!job) {
+    return next(new ErrorClass("No job found for this company", 404));
+  }
+
+  const applications = await Application.find({ jobId: job._id });
+
+  // Create Excel workbook and worksheet
+  const workbook = new excel.Workbook();
+  const worksheet = workbook.addWorksheet("Applications");
+
+  // Define headers
+  worksheet.columns = [
+    { header: "Job Id", key: "jobId", width: 30 },
+    { header: "User Id", key: "userId", width: 30 },
+    // Add more headers as needed
+  ];
+
+  // Populate data
+  applications.forEach((app) => {
+    worksheet.addRow({
+      jobId: app.jobId,
+      userId: app.userId,
+      // Add more data fields as needed
+    });
+  });
+
+  // Set response headers for Excel file download
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader(
+    "Content-Disposition",
+    "attachment;filename=" + "applications.xlsx"
+  );
+
+  // Write workbook to response
+  await workbook.xlsx.write(res);
+  res.end();
+};
