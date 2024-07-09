@@ -2,11 +2,22 @@ import Company from "../../../DB/models/company.model.js";
 import User from "./../../../DB/models/user.model.js";
 import Job from "../../../DB/models/job.model.js";
 import Application from "../../../DB/models/application.model.js";
-import { hashSync, compareSync } from "bcrypt";
 import { ErrorClass } from "../../utils/error-class.utils.js";
+import { sendEmailService } from "../../services/send-email.service.js";
+
+import { hashSync, compareSync } from "bcrypt";
 import jwt from "jsonwebtoken";
 import otpGenerator from "otp-generator";
-import { sendEmailService } from "../../services/send-email.service.js";
+
+
+/**
+ * 
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message,userInstance }
+ * @description sign up
+ */
 export const signUp = async (req, res, next) => {
   const {
     firstName,
@@ -27,6 +38,7 @@ export const signUp = async (req, res, next) => {
       new ErrorClass("Email already exists", 400, "Email already exists")
     );
   }
+  //generate otp code
   const otp = otpGenerator.generate(6, {
     upperCaseAlphabets: false,
     specialChars: false,
@@ -56,7 +68,6 @@ export const signUp = async (req, res, next) => {
   const isEmailSent = await sendEmailService({
     to: email,
     subject: "welcome",
-    // textMessage:"hamsolah bymsi 3alek mn gowa l back-end"
     htmlMessage: `<a href=${confirmationLink}>please verify your account</a>`,
   });
   if (isEmailSent.rejected.length) {
@@ -69,9 +80,21 @@ export const signUp = async (req, res, next) => {
   res.status(201).json({ msg: "user created ", userInstance });
 };
 
+
+
+
+/**
+ * 
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message, confirmed user}
+ * @description verify email
+ */
 export const verifyEmail = async (req, res, next) => {
   const { confirmationToken } = req.params;
   const data = jwt.verify(confirmationToken, process.env.CONFIRM_TOKEN);
+  // updating isConfirmed to true
   const confirmedAuthor = await User.findOneAndUpdate(
     { _id: data?.user._id, isConfirmed: false },
     { isConfirmed: true },
@@ -85,13 +108,18 @@ export const verifyEmail = async (req, res, next) => {
     .json({ msg: "User email successfully confirmed ", confirmedAuthor });
 };
 
-/***
- * @param {object} req
- * @param {object} res
- * @param {object} next
- * @returns {object} return response {message, token}
+
+
+
+/**
+ * 
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message, token}
  * @description login user
  */
+
 export const login = async (req, res, next) => {
   // destruct email and password from req.body
   const { email, password } = req.body;
@@ -127,6 +155,14 @@ export const login = async (req, res, next) => {
   res.status(200).json({ message: "Login success", token });
 };
 
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message}
+ * @description log out
+ */
 export const logOut = async (req, res, next) => {
   const { authUser } = req;
   const user = await User.findById(authUser._id);
@@ -134,6 +170,16 @@ export const logOut = async (req, res, next) => {
   await user.save();
   res.status(200).json({ msg: "logged out successfuly" });
 };
+
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message, user}
+ * @description update user
+ */
 export const updateUser = async (req, res, next) => {
   const { authUser } = req;
   const { email, phone, recoveryEmail, DOB, lastName, firstName } = req.body;
@@ -170,7 +216,6 @@ export const updateUser = async (req, res, next) => {
     const isEmailSent = await sendEmailService({
       to: email,
       subject: "welcome",
-      // textMessage:"hamsolah bymsi 3alek mn gowa l back-end"
       htmlMessage: `<a href=${confirmationLink}>please verify your account</a>`,
     });
     if (isEmailSent.rejected.length) {
@@ -179,6 +224,7 @@ export const updateUser = async (req, res, next) => {
         .json({ msg: "verification email sending is failed " });
     }
   }
+  //find user and update
   const user = await User.findByIdAndUpdate(
     authUser._id,
     {
@@ -191,40 +237,81 @@ export const updateUser = async (req, res, next) => {
     },
     { new: true }
   );
+  // update username field
   user.userName = user.firstName + " " + user.lastName;
   await user.save();
   res.status(200).json({ msg: "user updated ", user });
 };
+
+
+
+
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message,  deleteCompany, deleteJob, dUser, deleteApp}
+ * @description delete user
+ */
 export const deleteUser = async (req, res, next) => {
   const { authUser } = req;
-  const job = await Job.find({ addedBy: authUser._id }).select('_id');
-  let jobs =[]
-  job.forEach((e)=>{
-    jobs.push(e._id)
-  })
-  const deleteCompany = await Company.deleteMany({ companyHR: authUser._id });
-  const deleteApp = await Application.deleteMany({
-    $or: [
-      { userId: authUser._id },
-      { jobId: { $in: jobs } }
-    ]
+  const job = await Job.find({ addedBy: authUser._id }).select("_id");
+  let jobs = [];
+  // store all jobs added by the authenticated user
+  job.forEach((e) => {
+    jobs.push(e._id);
   });
-  const deleteJob = await Job.deleteMany({ addedBy: authUser._id })
+  //delete company
+  const deleteCompany = await Company.deleteMany({ companyHR: authUser._id });
+  //delete applications that is either applied by the authenticated user or created by jobs we deleted
+  const deleteApp = await Application.deleteMany({
+    $or: [{ userId: authUser._id }, { jobId: { $in: jobs } }],
+  });
+  //delete job
+  const deleteJob = await Job.deleteMany({ addedBy: authUser._id });
+  //delete user
   const dUser = await User.findByIdAndDelete(authUser._id);
 
-  res.status(200).json({ msg: "user deleted ",deleteCompany,deleteJob,dUser, deleteApp });
-
+  res
+    .status(200)
+    .json({ msg: "user deleted ", deleteCompany, deleteJob, dUser, deleteApp });
 };
 
+
+
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response { user}
+ * @description get user information
+ */
 export const getInfo = async (req, res, next) => {
   const { authUser } = req;
+  // return user information except password and _id
   const user = await User.findById(authUser._id).select("-password -_id");
   res.status(200).json({ user });
 };
 
+
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response { user}
+ * @description get user information by id
+ */
 export const getById = async (req, res, next) => {
   const { _id } = req.params;
+  //get user by id
   const user = await User.findById(_id).select("-password -_id");
+  // user not found
   if (!user) {
     return next(
       new ErrorClass(
@@ -238,9 +325,19 @@ export const getById = async (req, res, next) => {
   res.status(200).json({ user });
 };
 
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message user}
+ * @description update password
+ */
 export const updatePass = async (req, res, next) => {
   const { authUser } = req;
   const { password } = req.body;
+  // hashing the new pass
   const hashedPassword = hashSync(password, +process.env.SALT_ROUNDS);
   const user = await User.findByIdAndUpdate(
     authUser._id,
@@ -252,6 +349,14 @@ export const updatePass = async (req, res, next) => {
   res.status(200).json({ msg: "user password updated ", user });
 };
 
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response { user}
+ * @description get users associated with specific recovery email
+ */
 export const getAllRecovery = async (req, res, next) => {
   const { recoveryEmail } = req.body;
   const user = await User.find({ recoveryEmail }).select("-password -_id");
@@ -267,6 +372,16 @@ export const getAllRecovery = async (req, res, next) => {
   res.status(200).json({ user });
 };
 
+
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message}
+ * @description forget password
+ */
 export const forgetPassword = async (req, res, next) => {
   const { email } = req.body;
   const isUserExists = await User.findOne({
@@ -281,7 +396,6 @@ export const forgetPassword = async (req, res, next) => {
   const isEmailSent = await sendEmailService({
     to: email,
     subject: "welcome",
-    // textMessage:"hamsolah bymsi 3alek mn gowa l back-end"
     htmlMessage: `<h1>your otp numbers for reseting the password are : ${isUserExists.otp}</h1>`,
   });
   if (isEmailSent.rejected.length) {
@@ -292,6 +406,15 @@ export const forgetPassword = async (req, res, next) => {
   res.json({ msg: "check your email" });
 };
 
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message , savedUser}
+ * @description change password
+ */
 export const changePassword = async (req, res, next) => {
   const { email, password, otp } = req.body;
   const user = await User.findOne({ email });
@@ -301,8 +424,9 @@ export const changePassword = async (req, res, next) => {
     );
   }
   if (!user?.otp == otp) {
-    return new ErrorClass("otp is wrong");
+    return new ErrorClass("otp is wrong", 400, "otp is wrong");
   }
+  // generating new otp and store the new one in the DB
   const newOTP = otpGenerator.generate(6, {
     upperCaseAlphabets: false,
     specialChars: false,

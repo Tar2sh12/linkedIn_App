@@ -4,6 +4,13 @@ import { ErrorClass } from "../../utils/error-class.utils.js";
 import Job from "../../../DB/models/job.model.js";
 import Application from "../../../DB/models/application.model.js";
 
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message , job}
+ * @description addJob
+ */
 export const addJob = async (req, res, next) => {
   const {
     jobTitle,
@@ -30,6 +37,16 @@ export const addJob = async (req, res, next) => {
   res.status(201).json({ msg: "job created", job });
 };
 
+
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message , updatedJob}
+ * @description update Job
+ */
 export const updateJob = async (req, res, next) => {
   const {
     jobTitle,
@@ -69,9 +86,19 @@ export const updateJob = async (req, res, next) => {
   res.status(200).json({ msg: "updated", updatedJob });
 };
 
+
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message , deletedJob ,deletedApp}
+ * @description delete Job and any associated application to this job
+ */
 export const deleteJob = async (req, res, next) => {
   const { authUser } = req;
-  const { _id } = req.params;
+  const { _id } = req.params; //job id
   const job = await Job.findById({ _id });
   if (!authUser._id == job.addedBy) {
     return next(
@@ -88,6 +115,14 @@ export const deleteJob = async (req, res, next) => {
   res.status(200).json({ msg: "deleted", deletedJob ,deletedApp });
 };
 
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {message , applicationFullFilled}
+ * @description apply To Job
+ */
 export const applyToJob = async (req, res, next) => {
   const { authUser } = req;
   const { _id } = req.params; // job id
@@ -102,6 +137,15 @@ export const applyToJob = async (req, res, next) => {
   res.status(201).json({ msg: "applied successfuly", applicationFullFilled });
 };
 
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {allJobs}
+ * @description Get all Jobs with their company’s information.
+ */
 export const jobWithCompany = async (req, res, next) => {
   const { authUser } = req;
   const allJobs = await Job.aggregate([
@@ -116,6 +160,17 @@ export const jobWithCompany = async (req, res, next) => {
   ]);
   res.json({ allJobs });
 };
+
+
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {allJobs}
+ * @description get Jobs By CompanyName
+ */
 export const getJobsByCompanyName = async (req, res, next) => {
   const { authUser } = req;
   const { companyName } = req.query;
@@ -133,6 +188,16 @@ export const getJobsByCompanyName = async (req, res, next) => {
   res.json({ allJobs });
 };
 
+
+
+
+/**
+ * @param {object} req 
+ * @param {object} res 
+ * @param {object} next 
+ * @returns return response {allJobs}
+ * @description filter jobs with workingTime , jobLocation , seniorityLevel , jobTitle and technicalSkills
+ */
 export const filter = async (req, res, next) => {
   const { authUser } = req;
   const {
