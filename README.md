@@ -73,4 +73,4 @@ Contributions are welcome! Please follow these steps to contribute:
 
 ## Authors
 
-- [Your Name](link_to_your_profile) - Role
+- [Mohamed Tarek](link_to_your_profile) - Role
