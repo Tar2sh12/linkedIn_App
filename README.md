@@ -67,16 +67,7 @@ For detailed API documentation and examples, refer to the [API Documentation](ht
 5. **Job Search:** Users can search for jobs based on various filters such as location, job title, and seniority level.
 6. **Applications:** Users can apply for jobs, and HR users can review applications.
 
-## Contributing
 
-Contributions are welcome! Please follow these steps to contribute:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/feature-name`).
-3. Make your changes.
-4. Commit your changes (`git commit -am 'Add new feature'`).
-5. Push to the branch (`git push origin feature/feature-name`).
-6. Create a new Pull Request.
 
 ## Bonus Points
 
