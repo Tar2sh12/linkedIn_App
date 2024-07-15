@@ -35,8 +35,8 @@ This application facilitates job searching, user management, company profiles, a
 
 1. Clone the repository:
    ```bash
-   git clone <[repository-url](https://github.com/Tar2sh12/Library-System-with-EmailVerification-authentication-errorHandling)>
-   cd <Library-System-with-EmailVerification-authentication-errorHandling>
+   git clone <[repository-url](https://github.com/Tar2sh12/linkedIn_App)>
+   cd <linkedIn_App>
    ```
 
 2. Install dependencies:
