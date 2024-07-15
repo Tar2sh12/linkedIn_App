@@ -56,7 +56,7 @@ This application facilitates job searching, user management, company profiles, a
 
 ## API Documentation
 
-For detailed API documentation and examples, refer to the [API Documentation](https://documenter.getpostman.com/view/34540021/2sA3e5cTHJ).
+For detailed API documentation and examples, refer to the [API Documentation](https://documenter.getpostman.com/view/34540021/2sA3e1CAEi).
 
 ## Usage
 
