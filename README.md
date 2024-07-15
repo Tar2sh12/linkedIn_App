@@ -56,11 +56,7 @@ This application facilitates job searching, user management, company profiles, a
 
 ## API Documentation
 
-Detailed API documentation can be found in the following collections:
-
-- [User APIs](link_to_user_apis_documentation)
-- [Company APIs](link_to_company_apis_documentation)
-- [Jobs APIs](link_to_jobs_apis_documentation)
+For detailed API documentation and examples, refer to the [API Documentation](https://documenter.getpostman.com/view/34540021/2sA3e5cTHJ).
 
 ## Usage
 
