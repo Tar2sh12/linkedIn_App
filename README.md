@@ -71,6 +71,6 @@ Contributions are welcome! Please follow these steps to contribute:
 
 - **Excel Sheet Generation:** An endpoint generates an Excel sheet with applications for a specific company on a given day.
 
-## Authors
+## Author
 
 - [Mohamed Tarek](https://github.com/Tar2sh12) - Back-end Developer 
