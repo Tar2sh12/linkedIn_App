@@ -28,8 +28,7 @@ This application facilitates job searching, user management, company profiles, a
 
 - Node.js
 - Express.js
-- MongoDB (or specify your database)
-- Cloudinary (for user resume uploads)
+- Mongoose
 - ExcelJS (for bonus Excel sheet generation)
 
 ## Installation
