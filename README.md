@@ -31,12 +31,28 @@ This application facilitates job searching, user management, company profiles, a
 - Mongoose
 - ExcelJS (for bonus Excel sheet generation)
 
-## Installation
+## Setup
 
-1. Clone the repository.
-2. Install dependencies using `npm install`.
-3. Set up environment variables as per `.env.example`.
-4. Start the server using `npm start`.
+1. Clone the repository:
+   ```bash
+   git clone <[repository-url](https://github.com/Tar2sh12/Library-System-with-EmailVerification-authentication-errorHandling)>
+   cd <Library-System-with-EmailVerification-authentication-errorHandling>
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set environment variables:
+   - Create a `.env` file based on `.env.example` and configure database connection details.
+
+4. Start the application:
+   ```bash
+   npm run start:dev 
+   ```
+
+5. The application will start at `http://localhost:3004` by default.
 
 ## API Documentation
 
